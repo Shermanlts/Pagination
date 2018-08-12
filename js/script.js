@@ -4,6 +4,9 @@ FSJS project 2 - List Filter and Pagination
 JS code by Rob Sherman 8/12/2018
 ******************************************/
 
+//user updatable variables that change page function
+const resultsPerPage = 10;
+
 // Student constants are used to build the studentLibrary
 const studentSource = document.querySelectorAll('.student-item');
 const studentLinks = document.getElementsByClassName('avatar');
@@ -16,40 +19,68 @@ const studentElement = document.getElementsByClassName('student-list')[0];
 let studentLibrary = [];//holds the current Dictionary of students
 
 //builds the studentLibrary dictionary.
-function buildLibrary(); {
+function buildLibrary(searchRequest) {
     for (i = 0; i < studentSource.length; i++) {
-        studentLibrary.push({link: studentLinks[i].getAttribute("src"), name: studentNames[i].textContent, email: studentEmails[i].textContent, 
-                            date: studentDates[i].textContent });
+        if (searchRequest.length > 0) {
+            if ( studentNames[i].textContent.search(searchRequest) >= 0 ) {
+                studentLibrary.push({link: studentLinks[i].getAttribute("src"), name: studentNames[i].textContent, email: studentEmails[i].textContent, 
+                                     date: studentDates[i].textContent });
+            }
+        }
+        else {
+            studentLibrary.push({link: studentLinks[i].getAttribute("src"), name: studentNames[i].textContent, email: studentEmails[i].textContent, 
+                                date: studentDates[i].textContent });
+        }
     }
 }
 
+//Updates page HTML index is page 
+function printStudents(library, page) {
+    let loopLimit = (page + 1) * resultsPerPage;
+    if (library.length < loopLimit) {
+        loopLimit = library.length;
+    }
+    let message = "";
+    for ( i = page * 10; i < loopLimit; i++ ) {
+        message = message + 
+        `<li class="student-item cf">
+            <div class="student-details">
+                <img class="avatar" src=${library[i].link}>
+                <h3>${library[i].name}</h3>
+                <span class="email">${library[i].email}</span>
+            </div>
+            <div class="joined-details">
+            <span class="date">${library[i].date}</span>
+            </div>
+        </li>`;
+    }
+    if ( library.length > 10) {
+        message = message + addPagination(page, library.length);
+    }
+    studentElement.innerHTML = message;
+}
 
-console.log(studentLibrary);
+//Add the page number buttons and returns the HTML as a string.
+function addPagination(page, length) {
+    const numPages = Math.ceil(length/10);
+    console.log('Length:' + length + ' page:' + page + ' Number of pages:' + numPages);
+    message = `<div class="pagination"><ul>`;
+    for ( i = 1; i <= numPages; i++ ) {
+        if ( (page + 1) === i ) {
+            message = message +
+                      '<li><a class="active" href="javascript:printStudents(studentLibrary,' + (i - 1) + ')">' + i + '</a></li>';
+        }
+        else {
+            message = message +
+                      '<li><a href="javascript:printStudents(studentLibrary,' + (i - 1) + ')">' + i + '</a></li>';
+        }
+    }
+    message = message + '</ul></div>'
+    return(message);
+}
 
-const studentTemplate = 
-`<div class="student-details">
-    <img class="avatar" src=${studentLibrary[0].link}>
-    <h3>${studentLibrary[0].name}</h3>
-    <span class="email">${studentLibrary[0].email}</span>
-</div>
-<div class="joined-details">
-   <span class="date">${studentLibrary[0].date}</span>
-</div>`;
-
-studentElement.innerHTML = studentTemplate;
-// Create a function to hide all of the items in the list excpet for the ten you want to show
-// Tip: Keep in mind that with a list of 54 studetns, the last page will only display four
-
-
-
-
-// Create and append the pagination links - Creating a function that can do this is a good approach
-
-
-
-
-// Add functionality to the pagination buttons so that they show and hide the correct items
-// Tip: If you created a function above to show/hide list items, it could be helpful here
+buildLibrary("");
+printStudents(studentLibrary, 0);
 
 
 
