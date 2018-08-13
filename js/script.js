@@ -4,8 +4,23 @@ FSJS project 2 - List Filter and Pagination
 JS code by Rob Sherman 8/12/2018
 ******************************************/
 
+/* Coding note:
+    A much cleaner method for triggering the pagification buttons is to include the Javascript call right in the href:
+    '<li><a href="javascript:printStudents(studentLibrary,' + (i - 1) + ')">' + i + '</a></li>';
+    Per the requirements of the project this method has been replaced with the below method to ensure compliance.
+*/
+
 //user updatable variables that change page function
 const resultsPerPage = 10;
+
+
+//Creates the pagination section which will be kept empty and thus invisible unless more than 10 students exist.
+const pageDiv = document.querySelector('.page');
+let paraDiv = document.createElement("div");
+paraDiv.className = "pagination";
+paraDiv.innerHTML = '<ul class="paginationList"></ul>';
+pageDiv.insertBefore(paraDiv, null);
+const buttonList = document.querySelector('.paginationList');
 
 // Student constants are used to build the studentLibrary
 const studentSource = document.querySelectorAll('.student-item');
@@ -13,6 +28,7 @@ const studentLinks = document.getElementsByClassName('avatar');
 const studentNames = document.querySelectorAll('.student-details h3');
 const studentEmails = document.getElementsByClassName('email');
 const studentDates = document.getElementsByClassName('date');
+
 //StudentElement hold the location to be written to.
 const studentElement = document.getElementsByClassName('student-list')[0];
 
@@ -54,36 +70,34 @@ function printStudents(library, page) {
             </div>
         </li>`;
     }
-    if ( library.length > 10) {
-        message = message + addPagination(page, library.length);
-    }
     studentElement.innerHTML = message;
+    updatePagination(page, library.length);
 }
 
 //Add the page number buttons and returns the HTML as a string.
-function addPagination(page, length) {
+function updatePagination(page, length) {
     const numPages = Math.ceil(length/10);
-    console.log('Length:' + length + ' page:' + page + ' Number of pages:' + numPages);
-    message = `<div class="pagination"><ul>`;
+    let message = ``;
     for ( i = 1; i <= numPages; i++ ) {
         if ( (page + 1) === i ) {
             message = message +
-                      '<li><a class="active" href="javascript:printStudents(studentLibrary,' + (i - 1) + ')">' + i + '</a></li>';
+                      '<li><a class="active ' + i + '" href="#">' + i + '</a></li>';
         }
         else {
             message = message +
-                      '<li><a href="javascript:printStudents(studentLibrary,' + (i - 1) + ')">' + i + '</a></li>';
+                      '<li><a href="#" class="' + i + '">' + i + '</a></li>';
         }
     }
-    message = message + '</ul></div>'
-    return(message);
+    buttonList.innerHTML = message;    
 }
 
+//Watches for any buttons that may be clicked in the <ul>
+buttonList.addEventListener('click', (event) => {
+    printStudents(studentLibrary, (event.target.textContent - 1));
+});
+
+
+//Initializes the page.
 buildLibrary("");
 printStudents(studentLibrary, 0);
-
-
-
-
-
 
