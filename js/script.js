@@ -12,7 +12,7 @@ JS code by Rob Sherman 8/12/2018
 
 //user updatable variables that change page function
 const resultsPerPage = 10;
-
+const searchBarActive = true;
 
 //Creates the pagination section which will be kept empty and thus invisible unless more than 10 students exist.
 const pageDiv = document.querySelector('.page');
@@ -34,20 +34,48 @@ const studentElement = document.getElementsByClassName('student-list')[0];
 
 let studentLibrary = [];//holds the current Dictionary of students
 
+
+//The section below is all for the optional search bar.
+/*******************************************************************/
+
+if ( searchBarActive ) {
+    let searchBarElement = document.createElement('input');
+    searchBarElement.type = 'text';
+    searchBarElement.setAttribute('onkeyup', 'searchLibrary()');
+    searchBarElement.placeholder = 'Search for student..';
+    searchBarElement.className = 'student-search';
+    const pageHeader = document.querySelector('.page-header');
+    pageHeader.insertBefore(searchBarElement, null);
+    let searchedLibrary = [];
+}
+
+function searchLibrary() {
+    const searchBox = document.querySelector('.student-search');
+    let input = searchBox.value.toLowerCase();
+    let searchedLibrary = buildLibrary(input);
+}
+
+/*********************************************************************/
+
 //builds the studentLibrary dictionary.
 function buildLibrary(searchRequest) {
-    for (i = 0; i < studentSource.length; i++) {
-        if (searchRequest.length > 0) {
-            if ( studentNames[i].textContent.search(searchRequest) >= 0 ) {
-                studentLibrary.push({link: studentLinks[i].getAttribute("src"), name: studentNames[i].textContent, email: studentEmails[i].textContent, 
-                                     date: studentDates[i].textContent });
+    searchedLibrary = [];
+    if ( searchRequest.length > 0 ) {
+        for (i = 0; i < studentLibrary.length; i++) {
+            if ( studentLibrary[i].name.search(searchRequest) != -1 ) {
+                searchedLibrary.push(studentLibrary[i]);
             }
         }
-        else {
-            studentLibrary.push({link: studentLinks[i].getAttribute("src"), name: studentNames[i].textContent, email: studentEmails[i].textContent, 
-                                date: studentDates[i].textContent });
+        printStudents(searchedLibrary, 0);
+    } else {
+        if (studentLibrary.length === 0) {
+            for (i = 0; i < studentSource.length; i++) {
+                studentLibrary.push({link: studentLinks[i].getAttribute("src"), name: studentNames[i].textContent, email: studentEmails[i].textContent, 
+                                    date: studentDates[i].textContent });
+            }
         }
-    }
+        printStudents(studentLibrary, 0);
+    } 
 }
 
 //Updates page HTML index is page 
@@ -57,7 +85,7 @@ function printStudents(library, page) {
         loopLimit = library.length;
     }
     let message = "";
-    for ( i = page * 10; i < loopLimit; i++ ) {
+    for ( i = page * resultsPerPage; i < loopLimit; i++ ) {
         message = message + 
         `<li class="student-item cf">
             <div class="student-details">
@@ -78,26 +106,36 @@ function printStudents(library, page) {
 function updatePagination(page, length) {
     const numPages = Math.ceil(length/10);
     let message = ``;
-    for ( i = 1; i <= numPages; i++ ) {
-        if ( (page + 1) === i ) {
-            message = message +
-                      '<li><a class="active ' + i + '" href="#">' + i + '</a></li>';
+    if ( numPages < 2 ) {
+        buttonList.innerHTML = '';
+    } else {
+        for ( i = 1; i <= numPages; i++ ) {
+            if ( (page + 1) === i ) {
+                message = message +
+                          '<li><a class="active ' + i + '" href="#">' + i + '</a></li>';
+            }
+            else {
+                message = message +
+                          '<li><a href="#" class="' + i + '">' + i + '</a></li>';
+            }
         }
-        else {
-            message = message +
-                      '<li><a href="#" class="' + i + '">' + i + '</a></li>';
-        }
+        buttonList.innerHTML = message;
     }
-    buttonList.innerHTML = message;    
+        
 }
+
+
 
 //Watches for any buttons that may be clicked in the <ul>
 buttonList.addEventListener('click', (event) => {
-    printStudents(studentLibrary, (event.target.textContent - 1));
+    if ( searchedLibrary.length > 0 ) {
+        printStudents(searchedLibrary, (event.target.textContent - 1));
+    } else {
+        printStudents(studentLibrary, (event.target.textContent - 1));
+    }   
 });
 
 
 //Initializes the page.
 buildLibrary("");
-printStudents(studentLibrary, 0);
 
